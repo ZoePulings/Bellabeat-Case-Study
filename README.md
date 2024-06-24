@@ -111,6 +111,88 @@ Weekhours <- HourlyActivity %>% # create new table for week (mon-fri)
   group_by(Weekday) %>% 
   filter(Weekday== "Mon"| Weekday=="Tue" | Weekday=="Wed" | Weekday=="Thu" | Weekday=="Fri")
 ```
+### Exploring and summarising
+
+Before we go any further in the process fase, I want to explore a bit more about the data I am working with. I’ll use the n_distinct function to find out how many participants I have in each data table. Before was told this was a dataset from 30 Fitbit users. Let’s check this out.
+
+```
+n_distinct(Activity$Id)
+[1] 35
+n_distinct(HourlyActivity$Id)
+[1] 35
+n_distinct(MinuteActivity$Id)
+[1] 35
+n_distinct(Weightlog$Id)
+[1] 13
+n_distinct(MinuteSle$Id)
+[1] 25
+```
+We have three data tables with 35 participants. The WeightLog data table contains 13 and MinuteSle contains 25, this is something to think about.. For some reason a lot customers don’t feel to share their weight. And less participant share sleep minutes. We’ll look further in this later in the study.
+***
+#### Analyse & Visualize 
+
+Let's start with creating new tables , using the group_by(), mean() and sum() functions. 
+Starting with the Activity table. 
+
+      ! info: First I didn't make all these different data tables. Afterwards I
+      decided to separate things to make it more easy when creating a plot.
+```
+ActivitySummary <- Activity %>% # Table grouped by weekday
+  group_by(weekday) %>% 
+  summarise(
+    Steps = sum(TotalSteps),
+    Distance = sum(TotalDistance),
+    VeryActive = sum(VeryActiveMinutes),
+    LightActive = sum(LightlyActiveMinutes),
+    MeanSteps = mean(TotalSteps),
+    MeanDistance = mean(TotalDistance),
+    MeanveryActive = mean(VeryActiveMinutes),
+    MeanLightActive = mean(LightlyActiveMinutes))
+
+DailySummarizeAvarage <- Activity %>% # Table grouped by Id 
+  group_by(Id) %>% 
+  summarise(
+    TotalSteps_count = mean(TotalSteps),
+    Totaldistance_count = mean(TotalDistance),
+    TrackerDistance_count = mean(TrackerDistance),
+    LoggedActivitiesDistance_count = mean(LoggedActivitiesDistance),
+    Calories_count = mean(Calories))
+
+ActivityDaily <- Activity %>% # Table grouped by day, month & weekday
+  group_by(Day, Month, weekday) %>% 
+  summarise(
+   Totalsteps = sum(TotalSteps),
+   Calories = sum(Calories),
+   SedentaryMinutes = sum(SedentaryMinutes))
+```
+With all these numbers given I created a plot to gave me a better vision of what these tables are telling me.
+```
+DailySummarizeAvarage%>% # CALORIES VS STEPS, red line = avarage steps
+    ggplot(aes(reorder(factor(Id), TotalSteps_count))) +
+    geom_col(aes(y = TotalSteps_count, fill = Calories_count)) +
+    scale_fill_gradient2(low = "red", high = "purple", midpoint = median(DailySummarizeAvarage$Calories_count),  name = "Total Calories") +
+    coord_flip() +
+    geom_hline(yintercept = 6982, linetype = 2, color = "red")+
+    labs(x = "Id", y = "Total Steps", title = "Calories burnt by total steps")+
+    theme( panel.background = element_rect(fill = "black"),
+        plot.background = element_rect(fill = "black"), 
+        panel.grid.major= element_line(color = "darkgrey", size = 0.2), 
+        panel.grid.minor = element_line(color = "darkgrey", size = 0.2),
+        axis.title = element_text(color = "white"),
+        axis.text = element_text(color = "lightgrey"),
+        legend.background = element_rect(fill = "black"),
+        legend.text = element_text(color = "white"),
+        legend.title = element_text(color = "white"),
+        plot.margin = margin(t = 30, l= 10, r= 10, b = 20), 
+        title = element_text(color = "white"))
+```
+
+
+
+
+
+
+
 
 
 
